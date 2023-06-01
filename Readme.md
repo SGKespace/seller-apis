@@ -9,7 +9,7 @@ Cкрипт для работы с маркетплейсами Озон и Casi
 
 
 ## market.py
-Cкрипт работы с маркетплейсами Yandex и Casio по моделям FBS и DBS.
+Cкрипт работы с маркетплейсами Yandex и Casio по моделям [FBS и DBS](https://yastatic.net/s3/doc-binary/freeze/EJOKT8BjfvSKWAnjdkjw1-7z230.png).
 Скачивает с сайта Casio список остатков часов и для каждой модели работы получает список товаров из Yandex маркета и формирует список их артикулов,
 затем обновляет информацию о ценах и количестве имеющихся на складе часов на Yandex.
 [Требуется уникальные значения ID продавца для Yandex](https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization)
