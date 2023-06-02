@@ -12,15 +12,18 @@ logger = logging.getLogger(__file__)
 
 
 def get_product_list(last_id, client_id, seller_token):
-    """Получить список товаров магазина Озон
+    """Получить список товаров из Yandex
 
     Args:
-        last_id (str): идентификатор последнего значения на выгружаемой странице
-        client_id (str): ID клиента,
-        seller_token (str): API-ключ - уникальные значения продавца для Ozon,
+        page (int): порядковый номер текущей страницы в выгружаемом пакете товара
+        campaign_id (str): идентификатор кампании,
+        access_token (str): API-ключ - оба уникальных значения продавца для Yandex,
+            Авторизация для запросов магазина к Маркету -
+            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
+
     Returns:
-        словарь товаров - при положительном результате,
-        исключение ReadTimeout, ConnectionError или ERROR_2  - при ошибке возвращает текст ошибки
+        (dict): товары - при положительном результате,словарь товаров
+        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
     """
 
     url = "https://api-seller.ozon.ru/v2/product/list"
@@ -47,9 +50,11 @@ def get_offer_ids(client_id, seller_token):
     Args:
         client_id (str): ID клиента,
         seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
+            Авторизация для запросов магазина к Маркету -
+            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
     Returns:
-        список артиклов товаров - при положительном результате,
-        исключение ReadTimeout, ConnectionError или ERROR_2   - при ошибке возвращает текст ошибки
+        (dict): товары - при положительном результате,словарь товаров
+        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
     """
 
     last_id = ""
@@ -74,10 +79,11 @@ def update_price(prices: list, client_id, seller_token):
         prices (list): список массивов - информации о ценах товаров,
         client_id (str): ID клиента,
         seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
+            Авторизация для запросов магазина к Маркету -
+            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
     Returns:
-        результат обновления - при положительном результате
-        информация об ошибках - при ошибках
-
+        (dict): цены - при положительном результате, словарь цен
+        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
     """
 
     url = "https://api-seller.ozon.ru/v1/product/import/prices"
@@ -98,10 +104,11 @@ def update_stocks(stocks: list, client_id, seller_token):
         stocks (list): список массивов - информации об остатках,
         client_id (str): ID клиента,
         seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
+            Авторизация для запросов магазина к Маркету -
+            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
     Returns:
-        результат обновления - при положительном результате,
-        информация об ошибках - при ошибках
-
+        (dict): товары - при положительном результате, словарь товаров
+        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
     """
 
     url = "https://api-seller.ozon.ru/v1/product/import/stocks"
@@ -122,6 +129,7 @@ def download_stock():
         (dict): результат обработки файла об остатках
 
     """
+
     # Скачать остатки с сайта
     casio_url = "https://timeworld.ru/upload/files/ostatki.zip"
     session = requests.Session()
@@ -177,7 +185,7 @@ def create_prices(watch_remnants, offer_ids):
 
     Args:
         watch_remnants (dict): остатки часов с сайта Casio,
-        offer_ids (list): список артиклов товаров магазина Озон
+        offer_ids (list): список артиклей товаров магазина Озон
 
     Returns:
         (list): список текущих цен часов, совпадающих с размещенными на Ozon
@@ -234,7 +242,8 @@ async def upload_prices(watch_remnants, client_id, seller_token):
         watch_remnants (dict): остатки часов с сайта Casio,
         client_id (str): ID клиента,
         seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
-
+            Авторизация для запросов магазина к Маркету -
+            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
     Returns:
         (list): список текущих цен часов, совпадающих с размещенными на Ozon
 
@@ -254,7 +263,8 @@ async def upload_stocks(watch_remnants, client_id, seller_token):
         watch_remnants (dict): остатки часов с сайта Casio,
         client_id (str): ID клиента,
         seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
-
+            Авторизация для запросов магазина к Маркету -
+            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
     Returns:
         (list, list): список ненулевых текущих остатков часов, совпадающих с размещенными на Ozon,
         список текущих остатков часов, совпадающих с размещенными на Ozon

@@ -18,8 +18,9 @@ def get_product_list(last_id, client_id, seller_token):
         last_id (str): идентификатор ппоследнего значения на выгружаемой странице
         client_id (str): ID клиента,
         seller_token (str): API-ключ -  уникальные значения продавца для Ozon
+            ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
-        словарь товаров - при положительном результате,
+        (dict): товары - при положительном результате,словарь товаров
         исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
     """
 
@@ -47,10 +48,10 @@ def get_offer_ids(client_id, seller_token):
     Args:
         client_id (str): ID клиента,
         seller_token (str): API-ключ - уникальные значения продавца для Ozon,
-
+            ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
-        список артикулов товаров - при положительном результате,
-        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - если ошибка
+        (dict): товары - при положительном результате,словарь товаров
+        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
     """
 
     last_id = ""
@@ -75,12 +76,12 @@ def update_price(prices: list, client_id, seller_token):
         prices (list): список массивов - информации о ценах товаров.
         client_id (str): ID клиента.
         seller_token (str): API-ключ - оба уникальных значения продавца для Ozon.
-
+            ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
-        результат обновления - при положительном результате
-        информация об ошибках - при ошибках
-
+        (dict): товары - при положительном результате,словарь товаров
+        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
     """
+
     url = "https://api-seller.ozon.ru/v1/product/import/prices"
     headers = {
         "Client-Id": client_id,
@@ -99,11 +100,10 @@ def update_stocks(stocks: list, client_id, seller_token):
         stocks (list): список массивов - информации об остатках
         client_id (str): ID клиента,
         seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
-
+            ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
-        результат обновления - при положительном результате,
-        информация об ошибках - при ошибках
-
+        (dict): товары - при положительном результате,словарь товаров
+        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
     """
 
     url = "https://api-seller.ozon.ru/v1/product/import/stocks"
@@ -124,6 +124,7 @@ def download_stock():
         (dict): результат обработки файла об остатках
 
     """
+
     # Скачать остатки с сайта
     casio_url = "https://timeworld.ru/upload/files/ostatki.zip"
     session = requests.Session()
@@ -154,6 +155,7 @@ def create_stocks(watch_remnants, offer_ids):
         (list): список текущих остатков, с учетом часов, отсутствующих у Casio, но имеющихся на Ozon
 
     """
+
     # Исключим, что не загружено в seller
     stocks = []
     for watch in watch_remnants:
@@ -179,7 +181,7 @@ def create_prices(watch_remnants, offer_ids):
     Args:
         watch_remnants (dict): остатки часов с сайта Casio,
         offer_ids (list): список артикулов товаров магазина Озон
-
+              ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
         (list): список текущих цен часов, таких же как и в размещенными на Ozon
 
@@ -209,6 +211,7 @@ def price_conversion(price: str) -> str:
         (str): цена только значение
 
     """
+
     return re.sub("[^0-9]", "", price.split(".")[0])
 
 
@@ -223,6 +226,7 @@ def divide(lst: list, n: int):
         (list): список списков по n элементов в каждом
 
     """
+
     for i in range(0, len(lst), n):
         yield lst[i: i + n]
 
@@ -234,6 +238,7 @@ async def upload_prices(watch_remnants, client_id, seller_token):
         watch_remnants (dict): остатки часов с сайта Casio,
         client_id (str): ID клиента,
         seller_token (str): API-ключ - оба уникальных значения продавца для Ozon
+            ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
         (list): список текущих цен часов, совпадающих с размещенными на Ozon
 
@@ -252,8 +257,7 @@ async def upload_stocks(watch_remnants, client_id, seller_token):
         watch_remnants (dict): остатки часов с сайта Casio,
         client_id (str): ID клиента,
         seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
-            о получении здесь - https://sellerstats.ru/help/api_key_ozon
-
+            ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
         (list, list): список ненулевых текущих остатков часов, совпадающих с размещенными на Ozon,
         список текущих остатков часов, совпадающих с размещенными на Ozon
