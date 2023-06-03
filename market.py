@@ -15,9 +15,9 @@ def get_product_list(last_id, client_id, seller_token):
     """Получить список товаров из Yandex
 
     Args:
-        page (int): порядковый номер текущей страницы в выгружаемом пакете товара
-        campaign_id (str): идентификатор кампании,
-        access_token (str): API-ключ - оба уникальных значения продавца для Yandex,
+        last_id (str): идентификатор последнего значения на выгружаемой странице
+        client_id (str): ID клиента,
+        seller_token (str): API-ключ - уникальные значения продавца для Яндекс,
             Авторизация для запросов магазина к Маркету -
             https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
 
@@ -45,11 +45,11 @@ def get_product_list(last_id, client_id, seller_token):
 
 
 def get_offer_ids(client_id, seller_token):
-    """Получить артикли товаров магазина Озон
+    """Получить артикли товаров магазина  Яндекс
 
     Args:
         client_id (str): ID клиента,
-        seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
+        seller_token (str): API-ключ - уникальные значения продавца для Яндекс,
             Авторизация для запросов магазина к Маркету -
             https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
     Returns:
@@ -78,7 +78,7 @@ def update_price(prices: list, client_id, seller_token):
     Args:
         prices (list): список массивов - информации о ценах товаров,
         client_id (str): ID клиента,
-        seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
+        seller_token (str): API-ключ - оба уникальных значения продавца для  Яндекс,
             Авторизация для запросов магазина к Маркету -
             https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
     Returns:
@@ -103,7 +103,7 @@ def update_stocks(stocks: list, client_id, seller_token):
     Args:
         stocks (list): список массивов - информации об остатках,
         client_id (str): ID клиента,
-        seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
+        seller_token (str): API-ключ -  уникальные значения продавца для  Яндекс,
             Авторизация для запросов магазина к Маркету -
             https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
     Returns:
