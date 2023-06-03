@@ -11,13 +11,13 @@ import requests
 logger = logging.getLogger(__file__)
 
 
-def get_product_list(last_id, client_id, seller_token):
+def get_product_list(page, campaign_id, access_token):
     """Получить список товаров из Yandex
 
     Args:
-        last_id (str): идентификатор последнего значения на выгружаемой странице
-        client_id (str): ID клиента,
-        seller_token (str): API-ключ - уникальные значения продавца для Яндекс,
+        page (int): номер страницы в скачанном товаре
+        campaign_id (str): айдишник компании,
+        access_token (str): API-ключ - уникальные токены продавца Яндекс,
             Авторизация для запросов магазина к Маркету -
             https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
 
@@ -26,143 +26,124 @@ def get_product_list(last_id, client_id, seller_token):
         исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
     """
 
-    url = "https://api-seller.ozon.ru/v2/product/list"
+    endpoint_url = "https://api.partner.market.yandex.ru/"
     headers = {
-        "Client-Id": client_id,
-        "Api-Key": seller_token,
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json",
+        "Host": "api.partner.market.yandex.ru",
     }
     payload = {
-        "filter": {
-            "visibility": "ALL",
-        },
-        "last_id": last_id,
-        "limit": 1000,
+        "page_token": page,
+        "limit": 200,
     }
-    response = requests.post(url, json=payload, headers=headers)
+    url = endpoint_url + f"campaigns/{campaign_id}/offer-mapping-entries"
+    response = requests.get(url, headers=headers, params=payload)
     response.raise_for_status()
     response_object = response.json()
     return response_object.get("result")
 
 
-def get_offer_ids(client_id, seller_token):
-    """Получить артикли товаров магазина  Яндекс
+def update_stocks(stocks, campaign_id, access_token):
+    """Обновить товары с Яндекса
+        Args:
+            stocks (list): список массивов - остатки товаров,
+            campaign_id (str): айдишник компании,
+            access_token (str): API-ключ - - уникальные токены продавца Яндекс,
+                Авторизация для запросов магазина к Маркету -
+                https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
 
-    Args:
-        client_id (str): ID клиента,
-        seller_token (str): API-ключ - уникальные значения продавца для Яндекс,
-            Авторизация для запросов магазина к Маркету -
-            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
-    Returns:
-        (dict): товары - при положительном результате,словарь товаров
-        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
-    """
+        Returns:
+            (dict): ответ на запрос в том числе и товары
+            исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
+        """
 
-    last_id = ""
+    endpoint_url = "https://api.partner.market.yandex.ru/"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json",
+        "Host": "api.partner.market.yandex.ru",
+    }
+    payload = {"skus": stocks}
+    url = endpoint_url + f"campaigns/{campaign_id}/offers/stocks"
+    response = requests.put(url, headers=headers, json=payload)
+    response.raise_for_status()
+    response_object = response.json()
+    return response_object
+
+
+def update_price(prices, campaign_id, access_token):
+    """Обновить стоимость товаров с Яндекса
+        Args:
+            prices (list): список массивов стоимости,
+            campaign_id (str): айдишник компании,
+            access_token (str): API-ключ - - уникальные токены продавца Яндекс,
+                Авторизация для запросов магазина к Маркету -
+                https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
+
+        Returns:
+            (dict): ответ на запрос в том числе и стоимость
+            исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
+        """
+
+
+    endpoint_url = "https://api.partner.market.yandex.ru/"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json",
+        "Host": "api.partner.market.yandex.ru",
+    }
+    payload = {"offers": prices}
+    url = endpoint_url + f"campaigns/{campaign_id}/offer-prices/updates"
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    response_object = response.json()
+    return response_object
+
+
+def get_offer_ids(campaign_id, market_token):
+    """Получить артикулы товаров Яндекс маркета
+        Args:
+            campaign_id (str): айдишник компании,
+            market_token (str): API-ключ - - уникальные токены продавца Яндекс,
+                Авторизация для запросов магазина к Маркету -
+                https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
+
+        Returns:
+            (list): список артикулов товаров (может быть пустой)
+        """
+
+    page = ""
     product_list = []
     while True:
-        some_prod = get_product_list(last_id, client_id, seller_token)
-        product_list.extend(some_prod.get("items"))
-        total = some_prod.get("total")
-        last_id = some_prod.get("last_id")
-        if total == len(product_list):
+        some_prod = get_product_list(page, campaign_id, market_token)
+        product_list.extend(some_prod.get("offerMappingEntries"))
+        page = some_prod.get("paging").get("nextPageToken")
+        if not page:
             break
     offer_ids = []
     for product in product_list:
-        offer_ids.append(product.get("offer_id"))
+        offer_ids.append(product.get("offer").get("shopSku"))
     return offer_ids
 
 
-def update_price(prices: list, client_id, seller_token):
-    """Обновить цены товаров на Озон
+def create_stocks(watch_remnants, offer_ids, warehouse_id):
+    """Формируем данные товарах
+        Args:
+            watch_remnants (dict): наличие часов с сайта Casio,
+            offer_ids (list): артикули товаров с Yandex,
+            warehouse_id (str): айди склада
 
-    Args:
-        prices (list): список массивов - информации о ценах товаров,
-        client_id (str): ID клиента,
-        seller_token (str): API-ключ - оба уникальных значения продавца для  Яндекс,
-            Авторизация для запросов магазина к Маркету -
-            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
-    Returns:
-        (dict): цены - при положительном результате, словарь цен
-        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
-    """
-
-    url = "https://api-seller.ozon.ru/v1/product/import/prices"
-    headers = {
-        "Client-Id": client_id,
-        "Api-Key": seller_token,
-    }
-    payload = {"prices": prices}
-    response = requests.post(url, json=payload, headers=headers)
-    response.raise_for_status()
-    return response.json()
+        Returns:
+            (list): список остатков часов - в том числе и которых нет у Casio, но есть на Yandex.
+        """
 
 
-def update_stocks(stocks: list, client_id, seller_token):
-    """Обновить остатки
-
-    Args:
-        stocks (list): список массивов - информации об остатках,
-        client_id (str): ID клиента,
-        seller_token (str): API-ключ -  уникальные значения продавца для  Яндекс,
-            Авторизация для запросов магазина к Маркету -
-            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
-    Returns:
-        (dict): товары - при положительном результате, словарь товаров
-        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
-    """
-
-    url = "https://api-seller.ozon.ru/v1/product/import/stocks"
-    headers = {
-        "Client-Id": client_id,
-        "Api-Key": seller_token,
-    }
-    payload = {"stocks": stocks}
-    response = requests.post(url, json=payload, headers=headers)
-    response.raise_for_status()
-    return response.json()
-
-
-def download_stock():
-    """Скачать файл ostatki с сайта casio
-
-    Returns:
-        (dict): результат обработки файла об остатках
-
-    """
-
-    # Скачать остатки с сайта
-    casio_url = "https://timeworld.ru/upload/files/ostatki.zip"
-    session = requests.Session()
-    response = session.get(casio_url)
-    response.raise_for_status()
-    with response, zipfile.ZipFile(io.BytesIO(response.content)) as archive:
-        archive.extractall(".")
-    # Создаем список остатков часов:
-    excel_file = "ostatki.xls"
-    watch_remnants = pd.read_excel(
-        io=excel_file,
-        na_values=None,
-        keep_default_na=False,
-        header=17,
-    ).to_dict(orient="records")
-    os.remove("./ostatki.xls")  # Удалить файл
-    return watch_remnants
-
-
-def create_stocks(watch_remnants, offer_ids):
-    """Создаем информацию о текущих остатках
-
-    Args:
-        watch_remnants (dict): остатки часов с сайта Casio,
-        offer_ids (list): список артиклов товаров магазина Озон
-
-    Returns:
-        (list): список текущих остатков, с учетом часов,которых нет на Casio, но есть на Ozon
-
-    """
-
-    # Исключим, что не загружено в seller
-    stocks = []
+    # Уберем то, что не загружено в market
+    stocks = list()
+    date = str(datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z")
     for watch in watch_remnants:
         if str(watch.get("Код")) in offer_ids:
             count = str(watch.get("Количество"))
@@ -172,128 +153,140 @@ def create_stocks(watch_remnants, offer_ids):
                 stock = 0
             else:
                 stock = int(watch.get("Количество"))
-            stocks.append({"offer_id": str(watch.get("Код")), "stock": stock})
+            stocks.append(
+                {
+                    "sku": str(watch.get("Код")),
+                    "warehouseId": warehouse_id,
+                    "items": [
+                        {
+                            "count": stock,
+                            "type": "FIT",
+                            "updatedAt": date,
+                        }
+                    ],
+                }
+            )
             offer_ids.remove(str(watch.get("Код")))
-    # Добавим  из загруженного нвове недостающее:
+    # Добавим недостающее из загруженного:
     for offer_id in offer_ids:
-        stocks.append({"offer_id": offer_id, "stock": 0})
+        stocks.append(
+            {
+                "sku": offer_id,
+                "warehouseId": warehouse_id,
+                "items": [
+                    {
+                        "count": 0,
+                        "type": "FIT",
+                        "updatedAt": date,
+                    }
+                ],
+            }
+        )
     return stocks
 
 
 def create_prices(watch_remnants, offer_ids):
-    """Создание цен товаров, загруженных с Casio
+    """Формируем цены для часов
+        Args:
+            watch_remnants (dict): остатки часов  загруженных с сайта Casio,
+            offer_ids (list): список артикулов товаров Yandex
+        Returns:
+            list: полный список цен часов.
+        """
 
-    Args:
-        watch_remnants (dict): остатки часов с сайта Casio,
-        offer_ids (list): список артиклей товаров магазина Озон
-
-    Returns:
-        (list): список текущих цен часов, совпадающих с размещенными на Ozon
-
-    """
     prices = []
     for watch in watch_remnants:
         if str(watch.get("Код")) in offer_ids:
             price = {
-                "auto_action_enabled": "UNKNOWN",
-                "currency_code": "RUB",
-                "offer_id": str(watch.get("Код")),
-                "old_price": "0",
-                "price": price_conversion(watch.get("Цена")),
+                "id": str(watch.get("Код")),
+                # "feed": {"id": 0},
+                "price": {
+                    "value": int(price_conversion(watch.get("Цена"))),
+                    # "discountBase": 0,
+                    "currencyId": "RUR",
+                    # "vat": 0,
+                },
+                # "marketSku": 0,
+                # "shopSku": "string",
             }
             prices.append(price)
     return prices
 
 
-def price_conversion(price: str) -> str:
-    """Преобразовать цену. Пример: 5'990.00 руб. -> 5990
+async def upload_prices(watch_remnants, campaign_id, market_token):
+    """Получение арктикулов и обновление цен часов на Yandex
 
-    Args:
-        price (str): цена с указанием валюты
+        Args:
+            watch_remnants (dict): остатки часов с сайта Casio,
+            campaign_id (str): айдишник компании,
+            market_token (str):  API-ключ - уникальные токены продавца Яндекс,
+                Авторизация для запросов магазина к Маркету -
+                https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
 
-    Returns:
-        (str): цена только значение.
-
-    """
-
-    return re.sub("[^0-9]", "", price.split(".")[0])
-
-
-def divide(lst: list, n: int):
-    """Разделить список lst на части по n элементов
-
-    Args:
-        lst (list): некий список
-        n (int): делитель
-
-    Returns:
-        (list): список списков по n элементов в каждом
-
-    """
-
-    for i in range(0, len(lst), n):
-        yield lst[i: i + n]
+        Returns:
+            (list): список реальных цен часов лежащих на Yandex.
+        """
 
 
-async def upload_prices(watch_remnants, client_id, seller_token):
-    """Получение арктикулов и обновление цен часов на Озон
-
-    Args:
-        watch_remnants (dict): остатки часов с сайта Casio,
-        client_id (str): ID клиента,
-        seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
-            Авторизация для запросов магазина к Маркету -
-            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
-    Returns:
-        (list): список текущих цен часов, совпадающих с размещенными на Ozon
-
-    """
-
-    offer_ids = get_offer_ids(client_id, seller_token)
+    offer_ids = get_offer_ids(campaign_id, market_token)
     prices = create_prices(watch_remnants, offer_ids)
-    for some_price in list(divide(prices, 1000)):
-        update_price(some_price, client_id, seller_token)
+    for some_prices in list(divide(prices, 500)):
+        update_price(some_prices, campaign_id, market_token)
     return prices
 
 
-async def upload_stocks(watch_remnants, client_id, seller_token):
-    """Получение артиклей и обновление остатков часов на Озон
+async def upload_stocks(watch_remnants, campaign_id, market_token, warehouse_id):
+    """Формируем данные о товарах (часах)
+        Args:
+            watch_remnants (dict): остатки часов с сайта Casio,
+            campaign_id (str): айдишник компании,
+            market_token (str): API-ключ - - уникальные токены продавца Яндекс,
+                Авторизация для запросов магазина к Маркету -
+                https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
+            warehouse_id (str): айди склада
+        Returns:
+            (list), (list):  остатки часов с количестовм не равным нулю (для выложенных на Yandex),
+              остатки часов (для выложенных на Yandex).
+        """
 
-    Args:
-        watch_remnants (dict): остатки часов с сайта Casio,
-        client_id (str): ID клиента,
-        seller_token (str): API-ключ - оба уникальных значения продавца для Ozon,
-            Авторизация для запросов магазина к Маркету -
-            https://yandex.ru/dev/market/partner-api/doc/ru/concepts/authorization
-    Returns:
-        (list, list): список ненулевых текущих остатков часов, совпадающих с размещенными на Ozon,
-        список текущих остатков часов, совпадающих с размещенными на Ozon
 
-    """
-
-    offer_ids = get_offer_ids(client_id, seller_token)
-    stocks = create_stocks(watch_remnants, offer_ids)
-    for some_stock in list(divide(stocks, 100)):
-        update_stocks(some_stock, client_id, seller_token)
-    not_empty = list(filter(lambda stock: (stock.get("stock") != 0), stocks))
+    offer_ids = get_offer_ids(campaign_id, market_token)
+    stocks = create_stocks(watch_remnants, offer_ids, warehouse_id)
+    for some_stock in list(divide(stocks, 2000)):
+        update_stocks(some_stock, campaign_id, market_token)
+    not_empty = list(
+        filter(lambda stock: (stock.get("items")[0].get("count") != 0), stocks)
+    )
     return not_empty, stocks
 
 
 def main():
     env = Env()
-    seller_token = env.str("SELLER_TOKEN")
-    client_id = env.str("CLIENT_ID")
+    market_token = env.str("MARKET_TOKEN")
+    campaign_fbs_id = env.str("FBS_ID")
+    campaign_dbs_id = env.str("DBS_ID")
+    warehouse_fbs_id = env.str("WAREHOUSE_FBS_ID")
+    warehouse_dbs_id = env.str("WAREHOUSE_DBS_ID")
+
+    watch_remnants = download_stock()
     try:
-        offer_ids = get_offer_ids(client_id, seller_token)
-        watch_remnants = download_stock()
-        # Обновить остатки
-        stocks = create_stocks(watch_remnants, offer_ids)
-        for some_stock in list(divide(stocks, 100)):
-            update_stocks(some_stock, client_id, seller_token)
-        # Поменять цены
-        prices = create_prices(watch_remnants, offer_ids)
-        for some_price in list(divide(prices, 900)):
-            update_price(some_price, client_id, seller_token)
+        # FBS
+        offer_ids = get_offer_ids(campaign_fbs_id, market_token)
+        # Обновить остатки FBS
+        stocks = create_stocks(watch_remnants, offer_ids, warehouse_fbs_id)
+        for some_stock in list(divide(stocks, 2000)):
+            update_stocks(some_stock, campaign_fbs_id, market_token)
+        # Поменять цены FBS
+        upload_prices(watch_remnants, campaign_fbs_id, market_token)
+
+        # DBS
+        offer_ids = get_offer_ids(campaign_dbs_id, market_token)
+        # Обновить остатки DBS
+        stocks = create_stocks(watch_remnants, offer_ids, warehouse_dbs_id)
+        for some_stock in list(divide(stocks, 2000)):
+            update_stocks(some_stock, campaign_dbs_id, market_token)
+        # Поменять цены DBS
+        upload_prices(watch_remnants, campaign_dbs_id, market_token)
     except requests.exceptions.ReadTimeout:
         print("Превышено время ожидания...")
     except requests.exceptions.ConnectionError as error:
@@ -304,3 +297,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    
