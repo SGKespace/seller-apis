@@ -23,7 +23,8 @@ def get_product_list(page, campaign_id, access_token):
 
     Returns:
         (dict): товары - при положительном результате,словарь товаров
-        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
+    Raises:
+        RequestException или текст ошибки
     """
 
     endpoint_url = "https://api.partner.market.yandex.ru/"
@@ -55,7 +56,8 @@ def update_stocks(stocks, campaign_id, access_token):
 
         Returns:
             (dict): ответ на запрос в том числе и товары
-            исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
+        Raises:
+            RequestException или текст ошибки
         """
 
     endpoint_url = "https://api.partner.market.yandex.ru/"
@@ -84,7 +86,8 @@ def update_price(prices, campaign_id, access_token):
 
         Returns:
             (dict): ответ на запрос в том числе и стоимость
-            исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
+        Raises:
+            RequestException или текст ошибки
         """
 
 
@@ -298,4 +301,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-    

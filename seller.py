@@ -21,7 +21,8 @@ def get_product_list(last_id, client_id, seller_token):
             ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
         (dict): товары - при положительном результате,словарь товаров
-        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
+    Raises:
+        RequestException или текст ошибки
     """
 
     url = "https://api-seller.ozon.ru/v2/product/list"
@@ -51,7 +52,8 @@ def get_offer_ids(client_id, seller_token):
             ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
         (dict): товары - при положительном результате,словарь товаров
-        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
+    Raises:
+        RequestException или текст ошибки
     """
 
     last_id = ""
@@ -79,7 +81,8 @@ def update_price(prices: list, client_id, seller_token):
             ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
         (dict): товары - при положительном результате,словарь товаров
-        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
+    Raises:
+        RequestException или текст ошибки
     """
 
     url = "https://api-seller.ozon.ru/v1/product/import/prices"
@@ -103,7 +106,8 @@ def update_stocks(stocks: list, client_id, seller_token):
             ID клиента и API ключ Озон https://sellerstats.ru/help/api_key_ozon
     Returns:
         (dict): товары - при положительном результате,словарь товаров
-        исключение ReadTimeout, ConnectionError или ERROR_2 (текст ошибки) - при ошибке
+    Raises:
+        RequestException или текст ошибки
     """
 
     url = "https://api-seller.ozon.ru/v1/product/import/stocks"
